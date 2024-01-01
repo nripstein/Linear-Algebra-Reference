@@ -1,0 +1,432 @@
+
+\documentclass{article}
+\usepackage[landscape]{geometry}
+\usepackage{url}
+\usepackage{multicol}
+\usepackage{amsmath}
+\usepackage{esint}
+\usepackage{amsfonts}
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathmorphing}
+\usepackage{amsmath,amssymb}
+
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage{mathtools}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\makeatletter
+
+\newcommand*\bigcdot{\mathpalette\bigcdot@{.5}}
+\newcommand*\bigcdot@[2]{\mathbin{\vcenter{\hbox{\scalebox{#2}{$\m@th#1\bullet$}}}}}
+\makeatother
+
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+
+
+\makeatletter % start circle operators like \oplus and \ostar
+\newcommand{\ostar}{\mathbin{\mathpalette\make@circled\star}}
+\newcommand{\make@circled}[2]{%
+  \ooalign{$\m@th#1\smallbigcirc{#1}$\cr\hidewidth$\m@th#1#2$\hidewidth\cr}%
+}
+\newcommand{\smallbigcirc}[1]{%
+  \vcenter{\hbox{\scalebox{0.77778}{$\m@th#1\bigcirc$}}}%
+}
+\makeatother % end circle operators 
+
+\title{Summary Sheet: MATH 3NA3: Numerical Linear Algebra}
+\usepackage[brazilian]{babel}
+\usepackage[utf8]{inputenc}
+
+\advance\topmargin-.8in
+\advance\textheight3in
+\advance\textwidth3in
+\advance\oddsidemargin-1.5in
+\advance\evensidemargin-1.5in
+\advance\paperheight1.5in % here is new https://tex.stackexchange.com/questions/649149/cheat-sheet-using-mini-pages-and-tikzpicture-does-not-overflow-properly
+
+\makeatletter  % for augmanted matrix from https://tex.stackexchange.com/questions/2233/whats-the-best-way-make-an-augmented-coefficient-matrix
+\renewcommand*\env@matrix[1][*\c@MaxMatrixCols c]{%
+  \hskip -\arraycolsep
+  \let\@ifnextchar\new@ifnextchar
+  \array{#1}}
+\makeatother
+
+% these two packages needed for dotted vertical line in augmented matrix
+\usepackage{amsmath}
+\usepackage{arydshln} 
+
+\usepackage{multirow} % for multi column
+
+\parindent0pt
+\parskip2pt
+\newcommand{\hr}{\centerline{\rule{3.5in}{1pt}}}
+%\colorbox[HTML]{e4e4e4}{\makebox[\textwidth-2\fboxsep][l]{texto}
+\begin{document}
+
+\begin{center}{\huge{\textbf{Summary Sheet: MATH 3NA3 - Numerical Linear Algebra}}}\\
+\end{center}
+\begin{multicols*}{3}
+
+\tikzstyle{mybox} = [draw=black, fill=white, very thick,
+    rectangle, rounded corners, inner sep=10pt, inner ysep=10pt]
+\tikzstyle{fancytitle} =[fill=black, text=white, font=\bfseries]
+
+%------------ Floating Point Number Systems Content ---------------
+\begin{tikzpicture}
+\node [mybox] (box){%
+    \begin{minipage}{0.3\textwidth}
+    FP system definition: $\left\{
+    \begin{array}{@{}ll@{}}
+    \beta & : \text{Base} \\
+    P & : \text{Precision} \\
+    L & : \text{Exponent min} \\
+    U & : \text{Exponent max}
+    \end{array}
+    \right.$\\
+    $x = \pm (d_0. d_1 d_2 \hdots d_{P-1}) \times \beta^E$, \hfill $E \in [L, U]$\\
+    $x = \pm \left( \sum_{i=0}^{P-1}\frac{d_i}{\beta^i} \right) \beta^E$, \hfill$d_i \in [0, \beta - 1]$\\
+    $\epsilon_{mach} = \beta^{1-P}$\\
+    Absolute rounding error = $|fl(x) - x| \leq |x| \epsilon_{mach}$\\
+    RRE (Relative representation error) = $\frac{|fl(x) - x|}{|x|}$\\
+    maxRRE(x) = $\left\{
+    \begin{array}{@{}ll@{}}
+    \epsilon_{mach} & \text{if round up/down} \\
+    \frac{\epsilon_{mach}}{2} & \text{if round to nearest} \\
+    \end{array}
+    \right. \leq \epsilon_{mach}$\\
+    $fl(x) = x(1 + \delta), \delta = \frac{fl(x) - x}{x}, |\delta| \leq \epsilon_{mach}$\\
+    Min value representable $>$ 0 = $\beta^L$\\
+    Max value representable = $\beta^{U+1}(1 - \beta^{-P})$\\
+    $|\mathbb{F}| = 2(\beta - 1)(\beta^{P-1})(U-L+1) + 1$\\
+    \textbf{Properties of FP systems:}\\
+    \indent\hspace{0.5cm}1. Finite: $\exists$ overflow and underflow\\
+    \indent\hspace{0.5cm}2. Discrete: $\exists$ gaps btwn nums $\in \mathbb{F}$\\
+    \indent\hspace{0.5cm}3. Non-Uniform: Nums $\in \mathbb{F}$ $\lnot$(evenly distributed)
+    \end{minipage}
+};
+%------------ Floating Point Number Systems Header ---------------------
+\node[fancytitle, right=10pt] at (box.north west) {Floating Point (FP) Number Systems};
+\end{tikzpicture}
+
+%------------ Floating Point Operations Content ---------------
+\begin{tikzpicture}
+\node [mybox] (box){%
+    \begin{minipage}{0.3\textwidth}
+    $x \ostar y$ := $fl(x \star y) = (x \star y)(1 + \delta)$ \hfill $|\delta| < \epsilon$ \\
+    \textbf{Fundamental Axiom:}  $\frac{|x \ostar  y - (x \star y)|}{|x \star y|} \leq \epsilon = \frac{1}{2}\epsilon_{mach}$ \\
+    \textbf{Cancellation Error:} subtract similar sized nums
+    \end{minipage}
+};
+%------------ Floating Point Number Systems Header ---------------------
+\node[fancytitle, right=10pt] at (box.north west) {Floating Point Operations};
+\end{tikzpicture}
+
+
+
+
+
+%------------ General Algebra Content ---------------
+\begin{tikzpicture}
+\node [mybox] (box){%
+    \begin{minipage}{0.3\textwidth}
+    $\sum_{i=1}^n i = \frac{n(n+1)}{2}$\\
+    eigvals of $A^TA \in \mathbb{R}^{n \times n} = [\sigma_1 \hdots \sigma_n]^2$ from $A$'s SVD\\
+    \indent\hspace{0.5cm}$\bullet \text{ }a^2-b^2 = (a-b)(a+b)$\\
+    % $\bullet \text{ Singular values of }A^{-1} \text{ reciprocals of }A\text{'s}$\\ % can remove for space
+    \indent\hspace{0.5cm}$\bullet \text{ Singular matrix:= not invertible}$\\
+    \textbf{SPD}:\\
+    $\bullet$ $A$ SPD iff $A^T=A$ \& (strict diag. dom $\Leftrightarrow \lambda_{min} > 0$)\\
+    $\bullet$ $A$ SPD iff $B^T A B$ is SPD for nonsingular $B$\\
+    $\bullet$ if $A$ SPD, principle submatrices SPD\\
+    \textbf{Gershgorin's thm:}\\
+    \indent\hspace{0.5cm}$\bullet$ any eigenvalue of A is in at least one of the closed disks $D(a_{ii}, R_{ii}$, $R_{ii} = \sum_{j\neq i}|A_{ij}$\\
+    \textbf{Diagonal dominance:} properties:\\
+    \indent\hspace{0.5cm}1. If A strict diag dom, A invertible\\
+    \indent\hspace{0.5cm}2. $A^T=A$, if A strict diag dom, and $A_{ii}>0$, then A SPD.\\
+    pf of 1 by contradiction: sps non-invertible, then $\exists$ row of 0's, that row's diag not greater than sum of others, so contradiction. 
+    \end{minipage}
+};
+%------------ General Algebra Header ---------------------
+\node[fancytitle, right=10pt] at (box.north west) {General Algebra};
+\end{tikzpicture}
+
+
+%------------ Norms Content ---------------
+\begin{tikzpicture}
+\node [mybox] (box){%
+    \begin{minipage}{0.3\textwidth}
+    \textbf{Matrix Norm Properties:}\\
+    \indent\hspace{0.5cm}1. $||A|| \geq 0, ||A||=0$ iff $A=0$\\
+    \indent\hspace{0.5cm}2. $||cA|| = |c|\times ||A||$\\
+    \indent\hspace{0.5cm}3. $||A + B|| \leq ||A|| + ||B||$\\
+    $||A||_p = \underset{||\vec{x}||_p = 1}{\max}||A \vec{x}||_p = \underset{\vec{x} \neq 0}{\max}\frac{||A \vec{x}||_p}{||\vec{x}||_p}$\\
+    $||A||_1 = \underset{1 \leq j \leq n}{\max} \sum_{i=1}^m |a_{ij}|$ (max abs col sum)\\ % $||A||_1 = \max_{1 \leq j \leq n} \sum_{i=0}^m a_{ij}$
+    $||A||_\infty = \underset{1 \leq i \leq m}{\max} \sum_{j=1}^n |a_{ij}|$ (max abs row sum)\\
+    $||A||_2 = \sqrt{\lambda_{max}(A^T A))} = \sigma_{max}(A)$\\
+    $||AA^T||_2 = ||A^TA||_2 = {\lambda_{max}(A^T A))} = \sigma_{max}(A)^2$\\
+
+    \textbf{Induced Matrix Norm Properties:}\\
+    \indent\hspace{0.5cm}1. $||A \vec{x}|| \leq ||A|| \times ||\vec{x}||$\\
+    \indent\hspace{0.5cm}2. $||A B|| \leq ||A|| \times ||B||$\\
+    \indent\hspace{0.5cm}3. $||Q_1 A Q_2||_2 = ||A||_2$\\
+    \indent\hspace{0.5cm}4. $||Q||_2 = 1$\\
+    \indent\hspace{0.5cm}5. $||A^T||_2 = ||A||_2$\\
+    \indent\hspace{0.5cm}6. $||I|| = 1$\\
+
+    \textbf{Vector Norms:} $||\vec{x}||_p = \left( \sum_{i=1}^n |x_i|^p \right)^{\frac{1}{p}}$\\
+    \indent\hspace{0.5cm}1. $||\vec{x}|| \geq 0, ||\vec{x}||=0$ iff $\vec{x}=0$\\
+    \indent\hspace{0.5cm}2. $||\vec{x} + \vec{y}|| \leq ||\vec{x}|| + ||\vec{y}||$\\
+    \indent\hspace{0.5cm}3. $||\alpha \vec{x}|| = |\alpha| \times ||\vec{x}||$\\
+    \indent\hspace{0.5cm}$\bullet$ $ || \cdot ||_a$, $|| \cdot ||_b$ equiv. iff $\exists c$'s s.t.  $c_1||\vec{x}||_b \leq ||\vec{x}||_b \leq c_2||\vec{x}||_b$, meaning can exchange in p-norm applications\\
+    \indent\hspace{0.5cm}$\bullet ||\vec{x}||_\infty = \underset{1 \leq j \leq n}{\max}|x_j|$\\
+    \indent\hspace{0.5cm}$\bullet ||\vec{x}||_2 \leq ||\vec{x}||_1 \leq \sqrt{n}||\vec{x}||_2$\\
+    \indent\hspace{0.5cm}$\bullet ||\vec{x}||_\infty \leq ||\vec{x}||_1 \leq n||\vec{x}||_\infty$\\
+
+    \textbf{SVD:}\\
+    \indent\hspace{0.5cm} $\bullet A = U \Sigma V^T \Leftrightarrow A^{-1} = V \Sigma^{-1} U^T$\\
+    \indent\hspace{0.5cm} $A$ symm. pos. definite $\Rightarrow$ diagonalization = SVD\\
+    \indent\hspace{0.5cm}$\bullet$ Singular values of $AA^T = A^TA = \sigma_1^2, \hdots, \sigma_n^2$\\
+    \indent\hspace{0.5cm}$\bullet$ det($A$) = $\prod_{i=1}^n \sigma_i$
+    
+    
+    \end{minipage}
+};
+%------------ Norms Header ---------------------
+\node[fancytitle, right=10pt] at (box.north west) {Matrix Norms \& SVD};
+\end{tikzpicture}
+
+
+%------------ MATLAB Content ---------------
+\begin{tikzpicture}
+\node [mybox] (box){%
+    \begin{minipage}{0.3\textwidth}
+    \begin{tabular}{|c|c|}
+      \hline
+      \textbf{Command} & \textbf{Purpose} \\
+      \hline
+      realmax/realmin   & return max/min float  \\
+      \hline
+      eps   & return $\epsilon_{mach}$   \\
+      \hline
+      norm($\vec{x}, p$), norm($A, p$)   & $||\vec{x}||_p$, $||A||_p$   \\
+      \hline
+      cond($A, p$)   & $\kappa_p(A)$   \\
+      \hline
+      pinv($A$)   & pseudo-inv A   \\
+      \hline
+    \end{tabular}
+    \end{minipage}
+};
+%------------ MATLAB Header ---------------------
+\node[fancytitle, right=10pt] at (box.north west) {MATLAB};
+\end{tikzpicture}
+
+%------------ Error, Sensitivity & Big O Content ---------------
+\begin{tikzpicture}
+\node [mybox] (box){%
+    \begin{minipage}{0.3\textwidth}
+    input/output perturbation: $x + \delta x$, $f + \delta f$\\
+    \textbf{Absolute Condition Number:} $\hat{\kappa} = || f^{\prime} (x) ||$\\
+    \textbf{Relative Condition Number:} $\kappa = \frac{|| f^{\prime} (x) || ||x||}{||f(x)||}$\\
+    \textbf{Absolute Error:} $||\tilde{f}(x) - f(x)||$, \hfill $\tilde{f} :=$ num mthd outpt \\
+    \textbf{Relative Error:} $\frac{||\tilde{f}(x) - f(x)||}{||f(x)||}$\\
+    Algo accurrate iff $\frac{||\tilde{f}(x) - f(x)||}{||f(x)||} = O(\epsilon_{mach})$\\ % FIRST DOMINATED BY TRUNCATION ERROR
+    \textbf{Backward Error:} $|\tilde{x} - x|$\\
+    \indent $\bullet$ Attribute output err to $\Delta$ inp\\
+    \indent $\bullet$ $\tilde{f}(x) = f(\tilde{x})$, solve for $\tilde{x}$\\
+    \indent $\bullet$ rel fwd err $\leq \kappa$ rel back err
+    \end{minipage}
+};
+%------------ Error, Sensitivity & Big O Header ---------------------
+\node[fancytitle, right=10pt] at (box.north west) {Error, Sensitivity \& Big O};
+\end{tikzpicture}
+
+
+%------------ Solutions of Linear Equations 1 Content ---------------
+\begin{tikzpicture}
+\node [mybox] (box){%
+    \begin{minipage}{0.3\textwidth}
+    \textbf{Condition Number:} $\kappa_p(A) = ||A||_p||A^{-1}||_P$\\
+    % \indent\hspace{0.5cm}$\bullet \kappa_p(A) = ||A||_p||A^{-1}||_P$\\
+    \indent\hspace{0.5cm}1. $\kappa_p(A) \geq 1$\\
+    \indent\hspace{0.5cm}2. $\kappa_p(I) = 1$\\
+    \indent\hspace{0.5cm}3. $\kappa_p(\alpha A) = \kappa_p(A) \forall$ scalars $\alpha$\\
+    \indent\hspace{0.5cm}$\bullet$ $\kappa_2(A) = \frac{\sigma_{max}}{\sigma_{min}}$\\
+    \textbf{Condition Number of solving} $A\vec{x} = \vec{b}$:\\
+    \indent Math: $f(A, \vec{b}) = \vec{x} \Leftrightarrow A \vec{x} = \vec{b}$\\
+    \indent Compute: $\tilde{f}(A, \vec{b}) = \tilde{\vec{x}} = \vec{x} + \delta \vec{x} \Leftrightarrow (A + \delta A) = \vec{b} + \delta \vec{b}$\\
+    \indent\hspace{0.5cm} $\bullet$ Relative Error: $\frac{||\delta \vec{x}||}{||\vec{x}||}$\\
+    \indent\hspace{0.5cm} $\bullet$ Relative Backward Error: $\frac{||\delta \vec{b}||}{||\vec{b}||}$, $\frac{||\delta A||}{||A||}$\\
+    \indent\hspace{0.5cm} $\bullet$ Algo Backward Stable iff $\frac{||\delta \vec{b}||}{||\vec{b}||}$, $\frac{||\delta A||}{||A||} = O(\epsilon_{mach})$\\
+    \textbf{Residual Properties:} $\vec{r} = \vec{b} - \tilde{\vec{x}}$\\
+    \indent\hspace{0.5cm} 1. $\frac{||\delta \vec{x}||}{\vec{x}} \leq \kappa(A)\frac{\vec{r}}{\vec{b}}$\\
+    \indent\hspace{0.5cm} 2. $\frac{||\delta A||}{A} \geq \frac{\vec{r}}{A \tilde{\vec{x}}}$\\
+    \indent\hspace{0.5cm} $\bullet$ Problem: $A \vec{x} = \vec{b}$\\
+    \indent\hspace{0.5cm} $\bullet$ Computation: $(A + \delta A)\tilde{\vec{x}} = \vec{b}(1 + \delta)$\\
+    \indent\hspace{0.5cm} $\bullet$ $\tilde{\vec{x}} = \vec{x} + \delta \vec{x}$
+    
+    
+    \end{minipage}
+};
+%------------ Solutions of Linear Equations 1 Header ---------------------
+\node[fancytitle, right=10pt] at (box.north west) {Solutions of Linear Equations 1};
+\end{tikzpicture}
+
+
+%------------ Solutions of Linear Equations 2 Content ---------------
+\begin{tikzpicture}
+\node [mybox] (box){%
+    \begin{minipage}{0.3\textwidth}
+    \textbf{LU factorization:} $A_{n \times n} = LU$\\
+    \textbf{Steps:}\\
+    \indent 1. Initialize \(L\) as identity matrix.\\
+    \indent 2. Initialize \(U\) as zero matrix.\\
+    \indent 3. For each column \(j\):\\
+    \indent\hspace{0.5cm} a. Set elements of \(U\) in row \(i\) up to \(j\).\\
+    \indent\hspace{0.5cm} b. Set elements of \(L\) from row \(j+1\) to \(n\).\\
+    \textbf{Pivoting:}\\
+    \indent With partial pivoting: \(PA = LU\).\\
+    \indent\hspace{0.5cm} \(P\) - Permutation matrix.\\
+
+    $M_k = \begin{bmatrix}
+        1       & \hdots & 0         & 0     &\hdots & 0\\
+        \vdots  & \ddots & \vdots    &\vdots &\ddots &\vdots\\
+        0       & \hdots &1          & \vdots&\hdots &0\\
+        0       & \hdots &-m_{k+1}   &1      &       &0\\
+        \vdots  & \vdots &\vdots     &\vdots &\ddots &\vdots\\
+        0       & \hdots &-m_n       &0      &\hdots &1 \\
+    \end{bmatrix}$\\
+    \indent\hspace{0.5cm}$\bullet$ $L_k = M_k^{-1} = I + \vec{m_k}\vec{e_k}^T$\\
+    \indent\hspace{0.5cm}$\bullet$ $U = M_{n-1}M_{m-2}\hdots M_2 M_1 A$\\
+    \indent\hspace{0.5cm}$\bullet$ $L = M_1^{-1} M_2^{-1} \hdots M_{m-2}^{-1}M_{n-1}^{-1}$\\
+    \indent\hspace{0.5cm}$\bullet$ LU factorization not backw stable, PLU is.\\
+    \indent\hspace{0.5cm}$\bullet$ LU factorization $O(\frac{2}{3}n^3)$ flops\\
+    \textbf{Cholesky:} $A = LL^T$ (unique, for SPD A)\\
+    $l_{jj} = \sqrt{a_{jj}-\sum_{k=1}^{j-1}l_{jk}^2}$ diag elements\\
+    $l_{ij} = \frac{a{ij}-\sum_{k=1}^{j-1}l_{ik}l_j}{l_{jj}}$ other elements\\
+    \indent\hspace{0.5cm}$\bullet$ Cholesky factorization $O(\frac{1}{3}n^3)$ flops\\
+    $A = \begin{bmatrix}
+        a & b \\
+        b & c \\
+    \end{bmatrix}
+    L = \begin{bmatrix}
+    \sqrt{a} & 0 \\
+    \frac{b}{\sqrt{a}} & \sqrt{c - \left(\frac{b}{\sqrt{a}}\right)^2} \\
+    \end{bmatrix}$
+
+
+    \end{minipage}
+};
+%------------ Solutions of Linear Equations 2 Header ---------------------
+\node[fancytitle, right=10pt] at (box.north west) {Solutions of Linear Equations 2: LU};
+\end{tikzpicture}
+
+
+
+
+
+%------------ Iterative methods Content ---------------
+\begin{tikzpicture}
+\node [mybox] (box){%
+    \begin{minipage}{0.3\textwidth}
+    $A = M - N$, $M$ nonsingular\\
+    $\vec{x}^{(k+1)} = M^{-1}N\vec{x}^{(k}) + M^{-1}\vec{b} = G\vec{x}^{(k)}+\vec{c}$\\
+    Terminate when $||\vec{r}^{k}|| = ||\vec{b}-A\vec{x}^{(k})|| \leq $ tol\\
+    \textbf{Properties of $\rho(A)$}:\\
+        \indent\hspace{0.5cm}$1.$ $\rho(A) \leq ||A||_k \forall k$\\
+        \indent\hspace{0.5cm}$2.$ Spectral radius $\rho(A) = \text{max}|\lambda(A)|$\\
+        % pf of 2 by contradiction: sps $\rho$
+        \indent\hspace{0.5cm}$3.$ $\lim\limits_{n \rightarrow \infty} A_{n \times n}^n=0$ iff $\rho(A) < 1$\\
+        \indent\hspace{0.5cm}$4.$ Iterative mthd converges iff $\rho(G) < 1$\\
+        \indent\hspace{0.5cm}$\bullet$ Iter mthd converges iff $||G||_a<1$ for some $a$\\
+    \textbf{Jacobi Mthd:} $A = D + L + U (D=M, L+U=-N)$\\
+        \indent\hspace{0.5cm}$\bullet$ each iter $O(2kn^2)$, good for large, sparse $A$\\
+        \indent\hspace{0.5cm}$\bullet$ $D :=$ Diag entries of $A$\\
+        \indent\hspace{0.5cm}$\bullet$ $D :=$ Strictly lower diagonal entries of $A$\\
+        \indent\hspace{0.5cm}$\bullet$ $D :=$ Strictly upper diagonal entries of $A$\\
+        \indent\hspace{0.5cm}$\bullet$ $\vec{x} = D^{-1}(-(L+U)\vec{x}+\vec{b})$\\
+        \indent\hspace{0.5cm}$\bullet$ $\vec{x}^{(k+1)} = D^{-1}(-(L+U)\vec{x}^{(k)}+\vec{b})$\\
+        \indent\hspace{0.5cm}$\bullet$ $G_j = D^{-1}(L+U)$\\
+    \textbf{Gauss-Seidel Mthd:} $L+D=M, -U = N$\\    
+        \indent\hspace{0.5cm}$\bullet$ $\vec{x}^{(k+1)}=D^{-1}(\vec{b} - L\vec{x}^{(k+1)}-U \vec{x}^{(k)}$\\
+        \indent\hspace{0.5cm}$\bullet$ $\vec{x}^{(k+1)}=(L+D)^{-1}(\vec{b}-U\vec{x}^{(k)})\\$
+        \indent\hspace{0.5cm}$\bullet$ $G_{gs} = -(L+D)^{-1}U$\\
+        \indent\hspace{0.5cm}$\bullet$ $\vec{c}_{gs} = (L+D)^{-1}\vec{b}$\\
+    \textbf{SOR Mthd:} (equivalent to GS mthd for $\omega$ = 1\\    
+        $G_{sor} = (D+\omega L)^{-1}((1-\omega)D-\omega U)\vec{x}^{(k)}+\omega (D+\omega L)^{-1}\vec{b}$\\
+        \indent\hspace{0.5cm}$\bullet$ $G_{sor} = (D+\omega L)^{-1}((1-\omega)D-\omega U)$\\
+        \indent\hspace{0.5cm}$\bullet$ if SOR converges, then $0 < \omega < 2$\\
+    \textbf{Convergence}:\\
+        \indent\hspace{0.5cm}$\bullet$ Convergence rate $\rho(G) = \gamma = \lim\limits_{k \rightarrow \infty} \frac{||\vec{x}^{(k+1)} - \vec{x}^{(*)}||}{||\vec{x}^{(k)} - \vec{x}^{(*)}||^q}$\\
+        \indent\hspace{0.5cm}$\bullet$ $\lim\limits_{k \rightarrow \infty}\vec{x}^{(k)} = \vec{x}^{(*)}$\\
+        \indent\hspace{0.5cm}$\bullet$ $q=1$, $0<\gamma<1$ linear convergence\\
+        \indent\hspace{0.5cm}$\bullet$ each iter gain $-\log_{10}(\gamma)$ correct digits\\
+        \indent\hspace{0.5cm}$\bullet$ smaller $\gamma \Rightarrow$ faster convergence\\
+        \indent\hspace{0.5cm}$\bullet$ $A$ strict diag. dom. $\Rightarrow$ Jacobi \& G-S convrg (1)\\
+        \indent\hspace{0.5cm}$\bullet$ $A$ SPD $\Rightarrow$ SOR converges iff $0 < \omega < 2$\\
+        pf of (1)J (G-S) same idea - end of soln's lin eqns:\\
+        by contr. sps. $G_J$ has $|\lambda|\geq 1 \Rightarrow$ det($\lambda I - G_J$)=0\\
+        \indent\hspace{0.5cm}$\bullet$ Tridiagonal $A$: $\omega_{opt} = \frac{2}{1+\sqrt{1-\rho(G_j)^2}}$\\
+        \indent\hspace{0.5cm}$\bullet$ $\rho(G_{sor \omega opt}) = \frac{1-\sqrt{1-\rho(G_J)^2}}{1+\sqrt{1+\rho(G_J)^2}}$\\
+    \end{minipage}
+};
+%------------ Iterative Methods Header ---------------------
+\node[fancytitle, right=10pt] at (box.north west) {Iterative Methods};
+\end{tikzpicture}
+
+
+
+%------------ Least Squares Content ---------------
+\begin{tikzpicture}
+\node [mybox] (box){%
+    \begin{minipage}{0.3\textwidth}
+    Goal: find $\argmin\limits_{\vec{x}\in\mathbb{R}^n} ||\vec{b}-A\vec{x}||_2$\\
+    Solution set: $\chi_{ls} = \{ \vec{x} \in \mathbb{R}^n : \vec{x} = \argmin\limits_{\vec{x}\in\mathbb{R}^n} ||\vec{b}-A\vec{x}||_2\}$\\
+    $\chi_{ls} = \vec{x}_{ls} + \text{null}(A^TA) = \vec{x}_{ls} + \text{null}(A)$\\
+    \textbf{Theorems:}\\
+        \indent\hspace{0.5cm}$\bullet$ $\vec{x} \in \chi_{ls} \Leftrightarrow A^TA\vec{x} = A^T\vec{b}$ (normal equations)\\ % lec 30\\
+        \indent\hspace{0.5cm}$\bullet$ $\exists$ unique solution if rank($A) = n$\\
+    \textbf{Pseudo-Inverse:}\\
+        \indent\hspace{0.5cm}$\bullet$ $A^{\dagger} = V \Sigma^{\dagger} U^T$, $\sigma^{\dagger}_i = \frac{1}{\sigma_i} \text{ if } \sigma_i \neq 0, \text{ else } 0$\\
+        \indent\hspace{0.5cm}$\bullet$ $\vec{x}_{ls} = A^\dagger \vec{b}$\\
+    \textbf{QR factorization:} $A = \begin{bmatrix}
+        Q_1 & Q_2
+    \end{bmatrix} \begin{bmatrix}
+        R\\
+        0
+    \end{bmatrix} = Q_1 R$\\
+        \indent\hspace{0.5cm}$\bullet$ $A\in \mathbb{R}^{m\times n}, m \geq n \Rightarrow A$ has $QR$ factorization\\
+        \indent\hspace{0.5cm}$\bullet$ $Q_{m\times m} = \begin{bmatrix}
+            Q_{1 \mathbb{R} m\times n} & Q_{2 \mathbb{R}m\times m-n}
+        \end{bmatrix}$ orthogonal\\
+        \indent\hspace{0.5cm}$\bullet$ $R_{m\times n} = \begin{bmatrix}
+            \hat{R}\\
+            0
+        \end{bmatrix}$, $\hat{R}_{n\times n}$ upper triangular\\
+        \indent\hspace{0.5cm}$\bullet$ $\vec{x}_{ls} = R^{-1}Q_1^T\vec{b}$\\
+        \indent\hspace{0.5cm}$\bullet$ $|| \vec{b} - \vec{x}_{ls}|| = ||Q_2^T\vec{b}||_2$\\
+    \textbf{Householder Transformation:}\\
+        idea: $H_n \hdots H_2 H_1 A= R$ (upper triangular), $H_{m \times m}$\\
+        \indent\hspace{0.5cm}$\bullet$ $H\vec{x}$ is reflection of $\vec{x}$ in plane orthog to $\vec{v}$\\
+        \indent\hspace{0.5cm}$\bullet$ $H$ is orthogonal\\
+        \indent\hspace{0.5cm}$\bullet$ $H = I - 2 \vec{v} \vec{v}^T \frac{1}{\vec{v}^T\vec{v}}$, $||\vec{v}||_2=1$\\
+        \indent\hspace{0.5cm}$\bullet$ $H = H_1^TH_2^T \hdots H_n^T$\\
+        \indent\hspace{0.5cm}$\bullet$ $Q = H_1 H_2 \hdots H_n$\\
+        
+
+    
+    
+    \end{minipage}
+};
+%------------ Least Squares Header ---------------------
+\node[fancytitle, right=10pt] at (box.north west) {Least Squares};
+\end{tikzpicture}
+
+
+
+
+\end{multicols*}
+\end{document}
+
